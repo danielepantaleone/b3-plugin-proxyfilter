@@ -20,6 +20,8 @@
 #
 #   2014/05/12 - 1.0 - Fenix
 #   * initial release
+#   2014/05/13 - 1.0.1 - Fenix
+#   * minor fixes to debug messages
 
 __author__ = 'Fenix'
 __version__ = '1.0'
@@ -123,7 +125,7 @@ class WinmxunlimitedProxyScanner(ProxyScanner):
         through a Proxy server, False otherwise
         """
         try:
-            self.debug("contacting service api to check proxy connection for client <@%s>..." % client.id)
+            self.debug("contacting service api to check proxy connection for %s <@%s>..." % (client.name, client.id))
             response = urlopen(url=self.url % client.ip, timeout=self.p.settings['timeout'])
             data = response.read().strip()
 
@@ -132,18 +134,18 @@ class WinmxunlimitedProxyScanner(ProxyScanner):
                 return False
 
             if data == self.responses['PUBLIC_PROXY']:
-                self.debug('client <@%s> detected as using a "public" proxy: %s' % (client.id, client.ip))
+                self.debug('%s <@%s> detected as using a "public" proxy: %s' % (client.name, client.id, client.ip))
                 return True
 
             if data == self.responses['TOR_PROXY']:
-                self.debug('client <@%s> detected as using a "tor" proxy: %s' % (client.id, client.ip))
+                self.debug('%s <@%s> detected as using a "tor" proxy: %s' % (client.name, client.id, client.ip))
                 return True
 
             if data == self.responses['NO_PROXY']:
-                self.debug('client <@%s> doesn\'t seems to be using a proxy')
+                self.debug('%s <@%s> doesn\'t seems to be using a proxy' % (client.name, client.id))
                 return False
 
-            self.error('invalid response returned from the service api: %s' % data)
+            self.warning('invalid response returned from the service api: %s' % data)
             return False
 
         except URLError, e:
@@ -311,13 +313,13 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         self.debug('plugin started')
 
         # check connected clients on bot startup
-        for client in self.console.clients.getList():
-            if client.maxLevel >= self.settings['maxlevel']:
-                self.debug('bypassing proxy detection for client <@%s>: he is a high group level player')
+        for cl in self.console.clients.getList():
+            if cl.maxLevel >= self.settings['maxlevel']:
+                self.debug('bypassing proxy scan for %s <@%s> : he is a high group level player' % (cl.name, cl.id))
                 return
 
             # scan the client for proxy usage
-            self.proxy_check(client=client)
+            self.proxy_check(client=cl)
 
     ####################################################################################################################
     ##                                                                                                                ##
@@ -363,13 +365,13 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         """
         Executed when the plugin is enabled
         """
-        for client in self.console.clients.getList():
-            if client.maxLevel >= self.settings['maxlevel']:
-                self.debug('bypassing proxy scan for client <@%s>: he is a high group level player')
+        for cl in self.console.clients.getList():
+            if cl.maxLevel >= self.settings['maxlevel']:
+                self.debug('bypassing proxy scan for %s <@%s> : he is a high group level player' % (cl.name, cl.id))
                 return
 
             # scan the client for proxy usage
-            self.proxy_check(client=client)
+            self.proxy_check(client=cl)
 
     def onConnect(self, event):
         """
@@ -377,7 +379,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         """
         client = event.client
         if client.maxLevel >= self.settings['maxlevel']:
-            self.debug('bypassing proxy scan for client <@%s>: he is a high group level player' % client.id)
+            self.debug('bypassing proxy scan for %s <@%s> : he is a high group level player' % (client.name, client.id))
             return
 
         # scan the connecting client for proxy usage
@@ -394,7 +396,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         Log a proxy connection in the database
         """
         self.console.storage.query(self.sql['q1'] % (client.id, service, client.ip, time.time()))
-        self.debug('stored new proxy connection for client <@%s> : [%s] %s' % (client.id, service, client.ip))
+        self.debug('stored new proxy connection for %s <@%s> : [%s] %s' % (client.name, client.id, service, client.ip))
 
     def init_proxy_service(self, keyword):
         """
@@ -429,7 +431,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
                 self.console.say(self.getMessage('client_rejected', {'client': client.name}))
                 return
 
-        self.debug('proxy scan completed for client <@%s> : no proxy detected' % client.id)
+        self.debug('proxy scan completed for %s <@%s> : no proxy detected' % (client.name, client.id))
 
     ####################################################################################################################
     ##                                                                                                                ##
