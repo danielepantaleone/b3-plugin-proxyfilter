@@ -36,7 +36,7 @@ class Test_commands(ProxyfilterTestCase):
 
         # create some fake clients
         self.mike = FakeClient(console=self.console, name="Mike", guid="mikeguid", ip="127.0.0.1", groupBits=128)
-        self.bill = FakeClient(console=self.console, name="Mike", guid="mikeguid", ip="127.0.0.2", groupBits=1)
+        self.bill = FakeClient(console=self.console, name="Bill", guid="billguid", ip="127.0.0.2", groupBits=1)
 
     def init(self, config_content=None):
         self.conf = CfgConfigParser()

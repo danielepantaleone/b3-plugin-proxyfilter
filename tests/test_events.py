@@ -63,7 +63,7 @@ class Test_events(ProxyfilterTestCase):
 
         # create some fake clients
         self.mike = FakeClient(console=self.console, name="Mike", guid="mikeguid", ip="127.0.0.1", groupBits=1)
-        self.bill = FakeClient(console=self.console, name="Mike", guid="mikeguid", ip="127.0.0.2", groupBits=2)
+        self.bill = FakeClient(console=self.console, name="Bill", guid="billguid", ip="127.0.0.2", groupBits=2)
 
     ####################################################################################################################
     ##                                                                                                                ##
@@ -88,7 +88,7 @@ class Test_events(ProxyfilterTestCase):
         when(self.p.services['winmxunlimited']).scan(self.mike).thenReturn(False)
         self.mike.connects("1")
         # THEN
-        self.p.debug.assert_has_calls(call('proxy scan completed for client <@0> : no proxy detected'))
+        self.p.debug.assert_has_calls(call('proxy scan completed for Mike <@0> : no proxy detected'))
         self.assertEqual(0, self.p.console.storage.query(self.p.sql['q2']).getRow()['total'])
 
     def test_event_client_connect_proxy_bypass(self):
@@ -97,7 +97,7 @@ class Test_events(ProxyfilterTestCase):
         # WHEN
         self.bill.connects("1")
         # THEN
-        self.p.debug.assert_has_calls(call('bypassing proxy scan for client <@0>: he is a high group level player'))
+        self.p.debug.assert_has_calls(call('bypassing proxy scan for Bill <@0> : he is a high group level player'))
         self.assertEqual(0, self.p.console.storage.query(self.p.sql['q2']).getRow()['total'])
 
     ####################################################################################################################
