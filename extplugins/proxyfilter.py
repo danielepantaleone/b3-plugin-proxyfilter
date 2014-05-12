@@ -278,7 +278,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         Initialize plugin settings
         """
         # create database tables (if needed)
-        if not 'proxies' in self.console.storage.getTables():
+        if not 'proxies' in self.getTables():
             protocol = self.console.storage.dsnDict['protocol']
             self.console.storage.query(self.sql[protocol])
 
@@ -318,6 +318,33 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
 
             # scan the client for proxy usage
             self.proxy_check(client=client)
+
+    ####################################################################################################################
+    ##                                                                                                                ##
+    ##   GET TABLES IMPLEMENTATION FOR B3 1.9.x RETROCOMPATIBILITY                                                    ##
+    ##                                                                                                                ##
+    ####################################################################################################################
+
+    def getTables(self):
+        """
+        List the tables of the current database.
+        :return: list of strings
+        """
+        tables = []
+        protocol = self.console.storage.dsnDict['protocol']
+        if protocol == 'mysql':
+            q = """SHOW TABLES"""
+        elif protocol == 'sqlite':
+            q = """SELECT * FROM sqlite_master WHERE type='table'"""
+        else:
+            raise AssertionError("unsupported database %s" % protocol)
+        cursor = self.console.storage.query(q)
+        if cursor and not cursor.EOF:
+            while not cursor.EOF:
+                r = cursor.getRow()
+                tables.append(r.values()[0])
+                cursor.moveNext()
+        return tables
 
     ####################################################################################################################
     ##                                                                                                                ##
