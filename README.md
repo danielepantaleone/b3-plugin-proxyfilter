@@ -1,5 +1,4 @@
-ProxyFilter Plugin for BigBrotherBot [![BigBrotherBot](http://i.imgur.com/7sljo4G.png)][B3]
-====================================
+## ProxyFilter Plugin for BigBrotherBot [![BigBrotherBot](http://i.imgur.com/7sljo4G.png)][B3]
 
 Description
 -----------
@@ -36,7 +35,7 @@ In-game user guide
 ------------------
 
 * **!proxylist** `display the list of available proxy checker services`
-* **!proxyservice &lt;service&gt; &lt;on|off&gt;**** `enable/disable a proxy checker service`
+* **!proxyservice &lt;service&gt; &lt;on|off&gt;** `enable/disable a proxy checker service`
 * **!proxystats** `display statistics about detected proxies`
 
 Support
