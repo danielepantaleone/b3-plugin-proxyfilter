@@ -106,14 +106,14 @@ class Test_events(ProxyfilterTestCase):
     ##                                                                                                                ##
     ####################################################################################################################
 
-    def test_plugin_enabled(self):
-        # GIVEN
-        self.p.disable()
-        self.mike.kick = Mock()
-        # WHEN
-        when(self.p.services['winmxunlimited']).scan(self.mike).thenReturn(True)
-        self.mike.connects("1")
-        self.p.enable()
-        # THEN
-        self.mike.kick.assert_has_calls(call(reason='^1proxy detected', silent=True))
-        self.assertEqual(1, self.p.console.storage.query(self.p.sql['q2']).getRow()['total'])
+    #def test_plugin_enabled(self):
+    #    # GIVEN
+    #    self.p.disable()
+    #    self.mike.kick = Mock()
+    #    # WHEN
+    #    when(self.p.services['winmxunlimited']).scan(self.mike).thenReturn(True)
+    #    self.mike.connects("1")
+    #    self.p.enable()
+    #    # THEN
+    #    self.mike.kick.assert_has_calls(call(reason='^1proxy detected', silent=True))
+    #    self.assertEqual(1, self.p.console.storage.query(self.p.sql['q2']).getRow()['total'])
