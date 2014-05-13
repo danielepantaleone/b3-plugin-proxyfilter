@@ -175,7 +175,7 @@ class LocationPluginProxyScanner(ProxyScanner):
         ProxyScanner.__init__(self, plugin, service, url)
         self.l = self.p.console.getPlugin('location')
         if not self.l:
-            raise Exception('plugin Location is not available')
+            raise Exception('LocationPlugin is not available')
 
     def scan(self, client):
         """

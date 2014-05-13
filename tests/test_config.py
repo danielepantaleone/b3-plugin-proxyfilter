@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
 from b3.config import CfgConfigParser
-from mock import Mock
-from mockito import when
 from textwrap import dedent
 from tests import ProxyfilterTestCase
 from proxyfilter import ProxyfilterPlugin
@@ -90,6 +88,7 @@ class Test_config(ProxyfilterTestCase):
         """))
         # THEN
         self.assertDictEqual({}, self.p.services)
+        self.assertListEqual(['locationplugin', 'winmxunlimited'], self.p.settings['services'].keys())
 
     def test_config_service_enabled(self):
         # WHEN
