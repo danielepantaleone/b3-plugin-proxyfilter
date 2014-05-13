@@ -83,7 +83,7 @@ class Test_commands(ProxyfilterTestCase):
         self.mike.clearMessageHistory()
         self.mike.says("!proxylist")
         # THEN
-        self.assertListEqual(['Proxy services: winmxunlimited'], self.mike.message_history)
+        self.assertListEqual(['Proxy services: locationplugin, winmxunlimited'], self.mike.message_history)
 
     ####################################################################################################################
     ##                                                                                                                ##

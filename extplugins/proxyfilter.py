@@ -22,9 +22,11 @@
 #   * initial release
 #   2014/05/13 - 1.0.1 - Fenix
 #   * minor fixes to debug messages
+#   2014/05/14 - 1.0.2 - Fenix
+#   * added a new proxy detection service based on the Location Plugin
 
 __author__ = 'Fenix'
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 import b3
 import b3.plugin
@@ -155,6 +157,59 @@ class WinmxunlimitedProxyScanner(ProxyScanner):
 
 ########################################################################################################################
 ##                                                                                                                    ##
+##   LOCATION PLUGIN BASED SCANNER                                                                                    ##
+##                                                                                                                    ##
+########################################################################################################################
+
+
+class LocationPluginProxyScanner(ProxyScanner):
+    """
+    Perform proxy detection using information retrieved by the LocationPlugin
+    """
+    l = None
+
+    def __init__(self, plugin, service, url):
+        """
+        Object constructor
+        """
+        ProxyScanner.__init__(self, plugin, service, url)
+        self.l = self.p.console.getPlugin('location')
+        if not self.l:
+            raise Exception('plugin Location is not available')
+
+    def scan(self, client):
+        """
+        Return True if the given client is connected
+        through a Proxy server, False otherwise
+        """
+        if not self.l:
+            self.warning('could not perform proxy scan on %s <@%s> : Location plugin not available' % (client.name, client.id))
+            return False
+
+        if not client.isvar(self.l, 'location'):
+            # if no location has been retrieved
+            location = self.l.getLocationData(client)
+            if not location:
+                self.debug('could not perform proxy scan on %s <@%s> : location data not available' % (client.name, client.id))
+                return
+
+            # store the location object in the client
+            # so the location plugin won't have to recompute
+            client.setvar(self.l, 'location', location)
+
+        # get the location from the client object
+        location = client.var(self.l, 'location').value
+
+        if location['country'] == 'Anonymous Proxy':
+            self.debug('%s <@%s> detected as using an "anonymous" proxy: %s' % (client.name, client.id, client.ip))
+            return True
+
+        self.debug('%s <@%s> doesn\'t seems to be using a proxy' % (client.name, client.id))
+        return False
+
+
+########################################################################################################################
+##                                                                                                                    ##
 ##   PLUGIN IMPLEMENTATION                                                                                            ##
 ##                                                                                                                    ##
 ########################################################################################################################
@@ -173,6 +228,11 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
                 'enabled': True,
                 'class': WinmxunlimitedProxyScanner,
                 'url': 'http://winmxunlimited.net/api/proxydetection/v1/query/?ip=%s'
+            },
+            'locationplugin': {
+                'enabled': True,
+                'class': LocationPluginProxyScanner,
+                'url': None
             }
         }
     }
