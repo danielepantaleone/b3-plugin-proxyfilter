@@ -23,6 +23,7 @@ Latest version available [here](https://github.com/FenixXx/b3-plugin-proxyfilter
 In order to detect proxy connections this plugins make use of the following services:
 
 * [WinMX unlimited](http://winmxunlimited.net/)
+* [Location Plugin](https://github.com/FenixXx/b3-plugin-location/)
 
 If you know about other proxy detection services offering **free** or **paid** API please leave me a
 message on the support forum topic and I will provide support also for those
