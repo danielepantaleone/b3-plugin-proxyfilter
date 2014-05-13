@@ -24,7 +24,7 @@
 #   * minor fixes to debug messages
 
 __author__ = 'Fenix'
-__version__ = '1.0'
+__version__ = '1.0.1'
 
 import b3
 import b3.plugin
