@@ -6,7 +6,7 @@ A [BigBrotherBot][B3] plugin will prevent people connected through a proxy to jo
 
 ### Download
 
-Latest version available [here](https://github.com/FenixXx/b3-plugin-proxyfilter/archive/master.zip).
+Latest version available [here](https://github.com/danielepantaleone/b3-plugin-proxyfilter/archive/master.zip).
 
 ### Installation
 
@@ -23,7 +23,7 @@ Latest version available [here](https://github.com/FenixXx/b3-plugin-proxyfilter
 In order to detect proxy connections this plugins make use of the following services:
 
 * [WinMX unlimited](http://winmxunlimited.net/)
-* [Location Plugin](https://github.com/FenixXx/b3-plugin-location/)
+* [Location Plugin](https://github.com/danielepantaleone/b3-plugin-location/)
 
 If you know about other proxy detection services offering **free** or **paid** API please leave me a
 message on the support forum topic and I will provide support also for those
@@ -41,4 +41,4 @@ If you have found a bug or have a suggestion for this plugin, please report it o
 [B3]: http://www.bigbrotherbot.net/ "BigBrotherBot (B3)"
 [Support]: http://forum.bigbrotherbot.net/plugins-by-fenix/proxyfilter-plugin "Support topic on the B3 forums"
 
-[![Build Status](https://travis-ci.org/FenixXx/b3-plugin-proxyfilter.svg?branch=master)](https://travis-ci.org/FenixXx/b3-plugin-proxyfilter)
+[![Build Status](https://travis-ci.org/danielepantaleone/b3-plugin-proxyfilter.svg?branch=master)](https://travis-ci.org/danielepantaleone/b3-plugin-proxyfilter)
