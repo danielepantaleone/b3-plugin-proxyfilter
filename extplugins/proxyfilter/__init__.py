@@ -1,6 +1,6 @@
 #
 # ProxyFilter Plugin for BigBrotherBot(B3) (www.bigbrotherbot.net)
-# Copyright (C) 2013 Daniele Pantaleone <fenix@bigbrotherbot.net>
+# Copyright (C) 2014 Daniele Pantaleone <fenix@bigbrotherbot.net>
 # 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -18,201 +18,32 @@
 #
 # CHANGELOG
 #
-#   2014/05/12 - 1.0 - Fenix
-#   * initial release
-#   2014/05/13 - 1.0.1 - Fenix
-#   * minor fixes to debug messages
-#   2014/05/14 - 1.0.2 - Fenix
-#   * added a new proxy detection service based on the Location Plugin
+# 2014/05/12 - 1.0   - Fenix - initial release
+# 2014/05/13 - 1.0.1 - Fenix - minor fixes to debug messages
+# 2014/05/14 - 1.0.2 - Fenix - added a new proxy detection service based on the Location Plugin
+# 2015/02/01 - 1.1   - Fenix - use the new plugin structure
+#                            - make plugin up to date with LocationPlugin changes
+#                            - remove compatibility with B3 1.9.x
+#                            - do not let the plugin crash B3 upon object construction
+#                            - postgresql support
 
 __author__ = 'Fenix'
-__version__ = '1.0.2'
+__version__ = '1.1'
 
 import b3
 import b3.plugin
 import b3.events
-import threading
-import time
+import os
 import re
 
-from urllib2 import urlopen
-from urllib2 import URLError
+
+from b3.functions import getCmd
 from ConfigParser import NoOptionError
 from ConfigParser import NoSectionError
-
-try:
-    # import the getCmd function
-    import b3.functions.getCmd as getCmd
-except ImportError:
-    # keep backward compatibility
-    def getCmd(instance, cmd):
-        cmd = 'cmd_%s' % cmd
-        if hasattr(instance, cmd):
-            func = getattr(instance, cmd)
-            return func
-        return None
-
-
-########################################################################################################################
-##                                                                                                                    ##
-##   PROXY CHECKERS DEDICATED CODE                                                                                    ##
-##                                                                                                                    ##
-########################################################################################################################
-
-
-class ProxyScanner(object):
-    """
-    Base class for Proxy checkers
-    """
-    def __init__(self, plugin, service, url):
-        """
-        Object constructor
-        """
-        self.p = plugin
-        self.service = service
-        self.url = url
-
-    def scan(self, client):
-        """
-        !!! Inheriting classes MUST implement this method !!!
-        """
-        return False
-
-    ####################################################################################################################
-    ##                                                                                                                ##
-    ##   CUSTOM LOGGING METHODS                                                                                       ##
-    ##                                                                                                                ##
-    ####################################################################################################################
-
-    def debug(self, msg, *args, **kwargs):
-        """
-        Log a DEBUG message
-        """
-        self.p.debug('[%s] %s' % (self.service, msg), *args, **kwargs)
-
-    def error(self, msg, *args, **kwargs):
-        """
-        Log a ERROR message
-        """
-        self.p.error('[%s] %s' % (self.service, msg), *args, **kwargs)
-
-    def warning(self, msg, *args, **kwargs):
-        """
-        Log a WARNING message
-        """
-        self.p.warning('[%s] %s' % (self.service, msg), *args, **kwargs)
-
-
-########################################################################################################################
-##                                                                                                                    ##
-##   WINMXUNLIMITED.NET                                                                                               ##
-##                                                                                                                    ##
-########################################################################################################################
-
-
-class WinmxunlimitedProxyScanner(ProxyScanner):
-    """
-    Perform proxy detection using winmxunlimited.net API
-    """
-    responses = {
-        'INVALID_IP': 'Invalid IP',
-        'PUBLIC_PROXY': 'Public',
-        'TOR_PROXY': 'Tor',
-        'NO_PROXY': '0',
-    }
-
-    def scan(self, client):
-        """
-        Return True if the given client is connected
-        through a Proxy server, False otherwise
-        """
-        try:
-            self.debug("contacting service api to check proxy connection for %s <@%s>..." % (client.name, client.id))
-            response = urlopen(url=self.url % client.ip, timeout=self.p.settings['timeout'])
-            data = response.read().strip()
-
-            if data == self.responses['INVALID_IP']:
-                self.warning('invalid ip address supplied to the service api : <@%s:%s>' % (client.id, client.ip))
-                return False
-
-            if data == self.responses['PUBLIC_PROXY']:
-                self.debug('%s <@%s> detected as using a "public" proxy: %s' % (client.name, client.id, client.ip))
-                return True
-
-            if data == self.responses['TOR_PROXY']:
-                self.debug('%s <@%s> detected as using a "tor" proxy: %s' % (client.name, client.id, client.ip))
-                return True
-
-            if data == self.responses['NO_PROXY']:
-                self.debug('%s <@%s> doesn\'t seems to be using a proxy' % (client.name, client.id))
-                return False
-
-            self.warning('invalid response returned from the service api: %s' % data)
-            return False
-
-        except URLError, e:
-            self.error('could not connect to service api: %s' % e)
-            return False
-
-
-########################################################################################################################
-##                                                                                                                    ##
-##   LOCATION PLUGIN BASED SCANNER                                                                                    ##
-##                                                                                                                    ##
-########################################################################################################################
-
-
-class LocationPluginProxyScanner(ProxyScanner):
-    """
-    Perform proxy detection using information retrieved by the LocationPlugin
-    """
-    l = None
-
-    def __init__(self, plugin, service, url):
-        """
-        Object constructor
-        """
-        ProxyScanner.__init__(self, plugin, service, url)
-        self.l = self.p.console.getPlugin('location')
-        if not self.l:
-            raise Exception('LocationPlugin is not available')
-
-    def scan(self, client):
-        """
-        Return True if the given client is connected
-        through a Proxy server, False otherwise
-        """
-        if not self.l:
-            self.warning('could not perform proxy scan on %s <@%s> : Location plugin not available' % (client.name, client.id))
-            return False
-
-        if not client.isvar(self.l, 'location'):
-            # if no location has been retrieved
-            location = self.l.getLocationData(client)
-            if not location:
-                self.debug('could not perform proxy scan on %s <@%s> : location data not available' % (client.name, client.id))
-                return
-
-            # store the location object in the client
-            # so the location plugin won't have to recompute
-            client.setvar(self.l, 'location', location)
-
-        # get the location from the client object
-        location = client.var(self.l, 'location').value
-
-        if location['country'] == 'Anonymous Proxy':
-            self.debug('%s <@%s> detected as using an "anonymous" proxy: %s' % (client.name, client.id, client.ip))
-            return True
-
-        self.debug('%s <@%s> doesn\'t seems to be using a proxy' % (client.name, client.id))
-        return False
-
-
-########################################################################################################################
-##                                                                                                                    ##
-##   PLUGIN IMPLEMENTATION                                                                                            ##
-##                                                                                                                    ##
-########################################################################################################################
+from proxyscanner import WinmxunlimitedProxyScanner
+from proxyscanner import LocationPluginProxyScanner
+from threading import Thread
+from time import time
 
 
 class ProxyfilterPlugin(b3.plugin.Plugin):
@@ -238,26 +69,9 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
     }
 
     sql = {
-        ## DATA STORAGE/RETRIEVAL
-        'q1': """INSERT INTO proxies VALUES (NULL, '%s', '%s', '%s', '%d')""",
+        'q1': """INSERT INTO proxies (client_id, service, ip, time_add) VALUES ('%s', '%s', '%s', '%d')""",
         'q2': """SELECT COUNT(DISTINCT ip) AS total FROM proxies""",
         'q3': """SELECT service, COUNT(*) AS total FROM proxies GROUP BY service ORDER BY service ASC""",
-
-        ## DATABASE SETUP
-        'mysql': """CREATE TABLE IF NOT EXISTS proxies (
-                        id int(10) unsigned NOT NULL AUTO_INCREMENT,
-                        client_id int(10) unsigned NOT NULL,
-                        service varchar(64) NOT NULL,
-                        ip varchar(15) NOT NULL,
-                        time_add int(10) unsigned NOT NULL,
-                        PRIMARY KEY (id)
-                    ) ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;""",
-        'sqlite': """CREATE TABLE IF NOT EXISTS proxies (
-                         id INTEGER PRIMARY KEY AUTOINCREMENT,
-                         client_id INTEGER(10) NOT NULL,
-                         service VARCHAR(64) NOT NULL,
-                         ip VARCHAR(15) NOT NULL,
-                         time_add INTEGER(10) NOT NULL);"""
     }
 
     services = {}
@@ -270,17 +84,16 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
 
     def __init__(self, console, config=None):
         """
-        Build the plugin object
+        Build the plugin object.
+        :param console: The console instance
+        :param config: The plugin configuration file instance
         """
         b3.plugin.Plugin.__init__(self, console, config)
 
-        # get the admin plugin
         self.adminPlugin = self.console.getPlugin('admin')
         if not self.adminPlugin:
-            self.critical('could not start without admin plugin')
-            raise SystemExit(220)
+            raise AttributeError('could not start without admin plugin')
 
-        # set default messages
         self._default_messages = {
             'client_rejected': '''^7$client has been ^1rejected^7: proxy detected''',
             'proxy_list': '''^7Proxy services: $services''',
@@ -291,7 +104,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
 
     def onLoadConfig(self):
         """
-        Load plugin configuration
+        Load plugin configuration.
         """
         try:
             self.settings['maxlevel'] = self.console.getGroupLevel(self.config.get('settings', 'maxlevel'))
@@ -319,33 +132,34 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
 
         try:
 
-             # load proxy checker services settings
+             # load proxy scanners settings
             for s in self.config.options('services'):
-                if not s in self.settings['services'].keys():
-                    self.warning('invalid proxy checker service found in configuration file: %s' % s)
+                if not s in self.settings['services']:
+                    self.warning('invalid proxy scanner service found in configuration file: %s' % s)
                     continue
                 try:
                     self.settings['services'][s]['enabled'] = self.config.getboolean('services', s)
-                    self.debug('using proxy checker service [%s] : %s' % (s, self.settings['services'][s]['enabled']))
+                    self.debug('using proxy scanner [%s] : %s' % (s, self.settings['services'][s]['enabled']))
                 except ValueError, e:
                     self.error('could not load services/%s configuration value: %s' % (s, e))
-                    self.debug('using proxy checker service [%s] : %s' % (s, self.settings['services'][s]['enabled']))
+                    self.debug('using proxy scanner [%s] : %s' % (s, self.settings['services'][s]['enabled']))
 
         except NoSectionError:
-            # all the proxy checker services will be used
+            # all the proxy scanners will be used
             self.warning('section "services" missing in configuration file: using default configuration')
 
     def onStartup(self):
         """
-        Initialize plugin settings
+        Initialize plugin settings.
         """
         # create database tables (if needed)
-        if not 'proxies' in self.getTables():
-            protocol = self.console.storage.dsnDict['protocol']
-            self.console.storage.query(self.sql[protocol])
+        if not 'proxies' in self.console.storage.getTables():
+            external_dir = self.console.config.get_external_plugins_dir()
+            sql_path = os.path.join(external_dir, 'proxyfilter', 'sql', self.console.storage.dsnDict['protocol'], 'proxyfilter.sql')
+            self.console.storage.queryFromFile(sql_path)
 
         # create proxy checker instances
-        for keyword in self.settings['services'].keys():
+        for keyword in self.settings['services']:
             if self.settings['services'][keyword]['enabled']:
                 self.init_proxy_service(keyword)
 
@@ -362,12 +176,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
                 if func:
                     self.adminPlugin.registerCommand(self, cmd, level, func, alias)
 
-        try:
-            # register the events needed
-            self.registerEvent(self.console.getEventID('EVT_CLIENT_CONNECT'), self.onConnect)
-        except TypeError:
-            # keep backwards compatibility: B3 <= 1.9.x
-            self.registerEvent(self.console.getEventID('EVT_CLIENT_CONNECT'))
+        self.registerEvent(self.console.getEventID('EVT_CLIENT_CONNECT'), self.onConnect)
 
         # notice plugin started
         self.debug('plugin started')
@@ -376,37 +185,8 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         for cl in self.console.clients.getList():
             if cl.maxLevel >= self.settings['maxlevel']:
                 self.debug('bypassing proxy scan for %s <@%s> : he is a high group level player' % (cl.name, cl.id))
-                return
-
-            # scan the client for proxy usage
-            self.proxy_check(client=cl)
-
-    ####################################################################################################################
-    ##                                                                                                                ##
-    ##   GET TABLES IMPLEMENTATION FOR B3 1.9.x RETROCOMPATIBILITY                                                    ##
-    ##                                                                                                                ##
-    ####################################################################################################################
-
-    def getTables(self):
-        """
-        List the tables of the current database.
-        :return: list of strings
-        """
-        tables = []
-        protocol = self.console.storage.dsnDict['protocol']
-        if protocol == 'mysql':
-            q = """SHOW TABLES"""
-        elif protocol == 'sqlite':
-            q = """SELECT * FROM sqlite_master WHERE type='table'"""
-        else:
-            raise AssertionError("unsupported database %s" % protocol)
-        cursor = self.console.storage.query(q)
-        if cursor and not cursor.EOF:
-            while not cursor.EOF:
-                r = cursor.getRow()
-                tables.append(r.values()[0])
-                cursor.moveNext()
-        return tables
+            else:
+                self.proxy_scan(client=cl)
 
     ####################################################################################################################
     ##                                                                                                                ##
@@ -414,36 +194,25 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
     ##                                                                                                                ##
     ####################################################################################################################
 
-    def onEvent(self, event):
-        """
-        Old event dispatch system
-        """
-        if event.type == self.console.getEventID('EVT_CLIENT_CONNECT'):
-            self.onConnect(event)
-
     def onEnable(self):
         """
-        Executed when the plugin is enabled
+        Executed when the plugin is enabled.
         """
         for cl in self.console.clients.getList():
             if cl.maxLevel >= self.settings['maxlevel']:
                 self.debug('bypassing proxy scan for %s <@%s> : he is a high group level player' % (cl.name, cl.id))
-                return
-
-            # scan the client for proxy usage
-            self.proxy_check(client=cl)
+            else:
+                self.proxy_scan(client=cl)
 
     def onConnect(self, event):
         """
-        Handle EVT_CLIENT_CONNECT
+        Handle EVT_CLIENT_CONNECT.
         """
         client = event.client
         if client.maxLevel >= self.settings['maxlevel']:
             self.debug('bypassing proxy scan for %s <@%s> : he is a high group level player' % (client.name, client.id))
-            return
-
-        # scan the connecting client for proxy usage
-        self.proxy_check(client=client)
+        else:
+            self.proxy_scan(client=client)
 
     ####################################################################################################################
     ##                                                                                                                ##
@@ -455,12 +224,12 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         """
         Log a proxy connection in the database
         """
-        self.console.storage.query(self.sql['q1'] % (client.id, service, client.ip, time.time()))
+        self.console.storage.query(self.sql['q1'] % (client.id, service, client.ip, time()))
         self.debug('stored new proxy connection for %s <@%s> : [%s] %s' % (client.name, client.id, service, client.ip))
 
     def init_proxy_service(self, keyword):
         """
-        Initialize a proxy checker service instance
+        Initialize a proxy checker service instance.
         """
         try:
             self.debug('initializing proxy checker service: %s...' % keyword)
@@ -471,20 +240,20 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
             self.error('could not initialize proxy checker service [%s]: %s' % (keyword, e))
             return False
 
-    def proxy_check(self, client):
+    def proxy_scan(self, client):
         """
         Will launch the proxy scan in a separate thread
         """
-        proxycheck = threading.Thread(target=self.proxy_scan, args=(client,))
+        proxycheck = Thread(target=self._threaded_proxy_scan, args=(client,))
         proxycheck.setDaemon(True)
         proxycheck.start()
 
-    def proxy_scan(self, client):
+    def _threaded_proxy_scan(self, client):
         """
-        Perform proxy server detection on the given client
-        Will be executed in a separate thread so B3 won't hang on checking
+        Perform proxy server detection on the given client.
+        Will be executed in a separate thread so B3 won't hang on checking.
         """
-        for k in self.services.keys():
+        for k in self.services:
             if self.services[k].scan(client):
                 self.log_proxy_connection(k, client)
                 client.kick(reason=self.settings['reason'], silent=True)
@@ -504,7 +273,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         Display the list of available proxy checker services
         """
         services = []
-        for k in self.settings['services'].keys():
+        for k in self.settings['services']:
             enabled = self.settings['services'][k]['enabled']
             services.append('%s%s' % ('^2' if enabled else '^1',k))
 
@@ -528,7 +297,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         service = m.group('service')
         service = service.lower()
 
-        if not service in self.settings['services'].keys():
+        if not service in self.settings['services']:
             client.message('^7invalid service specified, try ^3!^7proxylist')
             return
 
@@ -539,7 +308,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         if option == 'on':
 
             # if already operational
-            if service in self.services.keys():
+            if service in self.services:
                 client.message('^7proxy service ^3%s ^7is already ^2ON' % service)
                 return
 
@@ -554,7 +323,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         elif option == 'off':
 
             # if not operational
-            if service not in self.services.keys():
+            if service not in self.services:
                 client.message('^7proxy service ^3%s ^7is already ^1OFF' % service)
                 return
 
