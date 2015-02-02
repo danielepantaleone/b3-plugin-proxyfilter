@@ -6,7 +6,6 @@ python:
   - 2.7
 
 env:
-  - B3_REPO='git+git://github.com/BigBrotherBot/big-brother-bot.git@master#egg=b3'
   - B3_REPO='git+git://github.com/BigBrotherBot/big-brother-bot.git@release-1.10#egg=b3'
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
