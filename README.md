@@ -10,12 +10,17 @@ Latest version available [here](https://github.com/danielepantaleone/b3-plugin-p
 
 ### Installation
 
-* copy the `proxyfilter.py` file into `b3/extplugins`
-* copy the `plugin_proxyfilter.ini` file in `b3/extplugins/conf`
-* add to the `plugins` section of your `b3.xml` config file:
+* copy the `proxyfilter` folder into `b3/extplugins`
+* if you are using `.xml` format for your b3 main configuration file, add to the `plugins` section of your `b3.xml` the following:
 
   ```xml
-  <plugin name="proxyfilter" config="@b3/extplugins/conf/plugin_proxyfilter.ini" />
+  <plugin name="proxyfilter" config="@b3/extplugins/proxyfilter/conf/plugin_proxyfilter.ini" />
+  ```
+  
+* if you are using `.ini` configuration file format for b3 main configuration file, add to the `plugins` section of your `b3.ini` the following:
+
+  ```ini
+  proxyfilter: @b3/extplugins/proxyfilter/conf/plugin_proxyfilter.ini
   ```
 
 ### Proxy detection
