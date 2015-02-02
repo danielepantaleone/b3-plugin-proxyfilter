@@ -19,27 +19,23 @@
 
 import logging
 import unittest2
+import os
 
 from mockito import when
-from b3.config import XmlConfigParser
+from b3.config import MainConfig
+from b3.config import CfgConfigParser
 from b3.plugins.admin import AdminPlugin
-from b3.update import B3version
-from b3 import __version__ as b3_version
 from proxyfilter import ProxyfilterPlugin
 
 
 def patch_proxy_filter():
     """
-    Patch the Proxyfilter class not to execute
-    proxy scans in a multithreaded environment
+    Patch the Proxyfilter class not to execute proxy scans in a thread
     """
-    def proxy_check(self, client):
-        """
-        Will launch the proxy scan in a separate thread
-        """
-        self.proxy_scan(client)
+    def proxy_scan(self, client):
+        self._threaded_proxy_scan(client)
 
-    ProxyfilterPlugin.proxy_check = proxy_check
+    ProxyfilterPlugin.proxy_check = proxy_scan
 
 class logging_disabled(object):
     """
@@ -69,25 +65,21 @@ class ProxyfilterTestCase(unittest2.TestCase):
 
     def setUp(self):
         # create a FakeConsole parser
-        self.parser_conf = XmlConfigParser()
-        self.parser_conf.loadFromString(r"""<configuration/>""")
+        self.parser_conf = MainConfig(CfgConfigParser(allow_no_value=True))
+        self.parser_conf.loadFromString(r"""""")
         with logging_disabled():
             from b3.fake import FakeConsole
             self.console = FakeConsole(self.parser_conf)
 
         # load the admin plugin
-        if B3version(b3_version) >= B3version("1.10dev"):
-            admin_plugin_conf_file = '@b3/conf/plugin_admin.ini'
-        else:
-            admin_plugin_conf_file = '@b3/conf/plugin_admin.xml'
-
         with logging_disabled():
-            self.adminPlugin = AdminPlugin(self.console, admin_plugin_conf_file)
+            self.adminPlugin = AdminPlugin(self.console, '@b3/conf/plugin_admin.ini')
             self.adminPlugin._commands = {}
             self.adminPlugin.onStartup()
 
         # make sure the admin plugin obtained by other plugins is our admin plugin
         when(self.console).getPlugin('admin').thenReturn(self.adminPlugin)
+        when(self.console.config).get_external_plugins_dir().thenReturn(os.path.join(os.getcwd(), '..', 'extplugins'))
 
         # patch the Proxyfilter class not to execute
         # proxy scans in a multithreaded environment
