@@ -24,6 +24,7 @@ from textwrap import dedent
 from tests import ProxyfilterTestCase
 from tests import logging_disabled
 from proxyfilter import ProxyfilterPlugin
+from time import sleep
 
 
 class Test_events(ProxyfilterTestCase):
@@ -40,6 +41,7 @@ class Test_events(ProxyfilterTestCase):
 
             [services]
             winmxunlimited: yes
+            locationplugin: no
 
             [messages]
             client_rejected: ^7$client has been ^1rejected^7: proxy detected
@@ -77,6 +79,7 @@ class Test_events(ProxyfilterTestCase):
         # WHEN
         when(self.p.services['winmxunlimited']).scan(self.mike).thenReturn(True)
         self.mike.connects("1")
+        sleep(.5)
         # THEN
         self.mike.kick.assert_has_calls(call(reason='^1proxy detected', silent=True))
         self.assertEqual(1, self.p.console.storage.query(self.p.sql['q2']).getRow()['total'])
@@ -87,8 +90,9 @@ class Test_events(ProxyfilterTestCase):
         # WHEN
         when(self.p.services['winmxunlimited']).scan(self.mike).thenReturn(False)
         self.mike.connects("1")
+        sleep(.5)
         # THEN
-        self.p.debug.assert_has_calls(call('proxy scan completed for Mike <@0> : no proxy detected'))
+        self.p.debug.assert_has_calls(call('proxy scan completed for Mike <@1> : no proxy detected'))
         self.assertEqual(0, self.p.console.storage.query(self.p.sql['q2']).getRow()['total'])
 
     def test_event_client_connect_proxy_bypass(self):
@@ -96,8 +100,9 @@ class Test_events(ProxyfilterTestCase):
         self.p.debug = Mock()
         # WHEN
         self.bill.connects("1")
+        sleep(.5)
         # THEN
-        self.p.debug.assert_has_calls(call('bypassing proxy scan for Bill <@0> : he is a high group level player'))
+        self.p.debug.assert_has_calls(call('bypassing proxy scan for Bill <@1> : he is a high group level player'))
         self.assertEqual(0, self.p.console.storage.query(self.p.sql['q2']).getRow()['total'])
 
     ####################################################################################################################

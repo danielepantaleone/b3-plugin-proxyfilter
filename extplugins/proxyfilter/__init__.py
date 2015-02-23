@@ -26,9 +26,10 @@
 #                            - remove compatibility with B3 1.9.x
 #                            - do not let the plugin crash B3 upon object construction
 #                            - postgresql support
+# 2015/02/23 - 1.2   - Fenix - changed plugin to use EVT_CLIENT_AUTH to correctly match client level
 
 __author__ = 'Fenix'
-__version__ = '1.1'
+__version__ = '1.2'
 
 import b3
 import b3.plugin
@@ -176,7 +177,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
                 if func:
                     self.adminPlugin.registerCommand(self, cmd, level, func, alias)
 
-        self.registerEvent(self.console.getEventID('EVT_CLIENT_CONNECT'), self.onConnect)
+        self.registerEvent(self.console.getEventID('EVT_CLIENT_AUTH'), self.onAuth)
 
         # notice plugin started
         self.debug('plugin started')
@@ -204,9 +205,9 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
             else:
                 self.proxy_scan(client=cl)
 
-    def onConnect(self, event):
+    def onAuth(self, event):
         """
-        Handle EVT_CLIENT_CONNECT.
+        Handle EVT_CLIENT_AUTH.
         """
         client = event.client
         if client.maxLevel >= self.settings['maxlevel']:
