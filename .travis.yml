@@ -9,7 +9,7 @@ env:
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
 install:
-  - pip install -r location/tests/requirements.txt --use-mirrors
+  - pip install -r proxyfilter/tests/requirements.txt --use-mirrors
   - pip install -e ${B3_REPO} --use-mirrors
 
 # command to run tests, e.g. python setup.py test
