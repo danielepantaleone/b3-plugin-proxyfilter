@@ -16,9 +16,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
 
-from time import sleep
+
+from b3.exceptions import MissingRequirement
 from urllib2 import urlopen
 from urllib2 import URLError
+
 
 class ProxyScanner(object):
     """
@@ -39,9 +41,9 @@ class ProxyScanner(object):
         raise NotImplementedError
 
     ####################################################################################################################
-    ##                                                                                                                ##
-    ##   CUSTOM LOGGING METHODS                                                                                       ##
-    ##                                                                                                                ##
+    #                                                                                                                  #
+    #   CUSTOM LOGGING METHODS                                                                                         #
+    #                                                                                                                  #
     ####################################################################################################################
 
     def debug(self, msg, *args, **kwargs):
@@ -64,9 +66,9 @@ class ProxyScanner(object):
 
 
 ########################################################################################################################
-##                                                                                                                    ##
-##   WINMXUNLIMITED.NET                                                                                               ##
-##                                                                                                                    ##
+#                                                                                                                      #
+#   WINMXUNLIMITED.NET                                                                                                 #
+#                                                                                                                      #
 ########################################################################################################################
 
 
@@ -116,15 +118,15 @@ class WinmxunlimitedProxyScanner(ProxyScanner):
 
 
 ########################################################################################################################
-##                                                                                                                    ##
-##   LOCATION PLUGIN BASED SCANNER                                                                                    ##
-##                                                                                                                    ##
+#                                                                                                                      #
+#   GEOLOCATION PLUGIN BASED SCANNER                                                                                      #
+#                                                                                                                      #
 ########################################################################################################################
 
 
-class LocationPluginProxyScanner(ProxyScanner):
+class GeolocationPluginProxyScanner(ProxyScanner):
     """
-    Perform proxy detection using information retrieved by the LocationPlugin.
+    Perform proxy detection using information retrieved by the GeolocationPlugin.
     """
     locationPlugin = None
 
@@ -132,28 +134,20 @@ class LocationPluginProxyScanner(ProxyScanner):
         """
         Object constructor.
         """
-        ProxyScanner.__init__(self, plugin, service, url)
-        self.locationPlugin = self.p.console.getPlugin('location')
-        if not self.locationPlugin:
-            raise Exception('LocationPlugin is not available')
+        if not plugin.console.getPlugin('geolocation'):
+            raise MissingRequirement('geolocation plugin is not available')
+        super(GeolocationPluginProxyScanner, self).__init__(plugin, service, url)
 
     def scan(self, client):
         """
         Return True if the given client is connected through a Proxy server, False otherwise.
         """
-        if not client.isvar(self.locationPlugin, 'location'):
-            # location plugin still didn't manage to retrieve location information so sleep a bit and give it time
-            # this won't hang B3 since everything is executed in a separate thread
-            sleep(10)
-            if not client.isvar(self.locationPlugin, 'location'):
-                self.debug('could not perform proxy scan on %s <@%s> : location data not available' % (client.name, client.id))
-                return False
+        if not hasattr(client, 'location'):
+            self.debug('could not perform proxy scan on %s <@%s> : geolocation data not available' % (client.name, client.id))
+            return False
 
-        # get the location from the client object
-        location = client.var(self.locationPlugin, 'location').value
-
-        if location['country'] == 'Anonymous Proxy':
-            self.debug('%s <@%s> detected as using an "anonymous" proxy: %s' % (client.name, client.id, client.ip))
+        if 'proxy' in client.location.country.lower():
+            self.debug('%s <@%s> detected as using a proxy: %s' % (client.name, client.id, client.ip))
             return True
 
         self.debug('%s <@%s> doesn\'t seems to be using a proxy' % (client.name, client.id))

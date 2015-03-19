@@ -21,8 +21,8 @@ from mock import Mock
 from mock import call
 from mockito import when
 from textwrap import dedent
-from tests import ProxyfilterTestCase
-from tests import logging_disabled
+from . import ProxyfilterTestCase
+from . import logging_disabled
 from proxyfilter import ProxyfilterPlugin
 from time import sleep
 
@@ -41,7 +41,7 @@ class Test_events(ProxyfilterTestCase):
 
             [services]
             winmxunlimited: yes
-            locationplugin: no
+            geolocationplugin: no
 
             [messages]
             client_rejected: ^7$client has been ^1rejected^7: proxy detected

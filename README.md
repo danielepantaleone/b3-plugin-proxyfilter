@@ -28,10 +28,10 @@ Latest version available [here](https://github.com/danielepantaleone/b3-plugin-p
 In order to detect proxy connections this plugins make use of the following services:
 
 * [WinMX unlimited](http://winmxunlimited.net/)
-* [Location Plugin](https://github.com/danielepantaleone/b3-plugin-location/)
+* [Geolocation Plugin](https://github.com/danielepantaleone/b3-plugin-geolocation/)
 
 If you know about other proxy detection services offering **free** or **paid** API please leave me a
-message on the support forum topic and I will provide support also for those
+message on the support forum topic and I will provide support also for those.
 
 ### In-game user guide
 
@@ -47,3 +47,4 @@ If you have found a bug or have a suggestion for this plugin, please report it o
 [Support]: http://forum.bigbrotherbot.net/plugins-by-fenix/proxyfilter-plugin "Support topic on the B3 forums"
 
 [![Build Status](https://travis-ci.org/danielepantaleone/b3-plugin-proxyfilter.svg?branch=master)](https://travis-ci.org/danielepantaleone/b3-plugin-proxyfilter)
+[![Code Health](https://landscape.io/github/danielepantaleone/b3-plugin-proxyfilter/master/landscape.svg?style=flat)](https://landscape.io/github/danielepantaleone/b3-plugin-proxyfilter/master)

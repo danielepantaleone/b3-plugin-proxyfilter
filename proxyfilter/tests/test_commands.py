@@ -20,11 +20,10 @@ from b3.config import CfgConfigParser
 from mock import Mock
 from mockito import when
 from textwrap import dedent
-from tests import ProxyfilterTestCase
-from tests import logging_disabled
 from proxyfilter import ProxyfilterPlugin
 from proxyfilter import WinmxunlimitedProxyScanner
-
+from . import ProxyfilterTestCase
+from . import logging_disabled
 
 class Test_commands(ProxyfilterTestCase):
 
@@ -70,9 +69,9 @@ class Test_commands(ProxyfilterTestCase):
         self.p.onStartup()
 
     ####################################################################################################################
-    ##                                                                                                                ##
-    ##  TEST CMD PROXYLIST                                                                                            ##
-    ##                                                                                                                ##
+    #                                                                                                                  #
+    #  TEST CMD PROXYLIST                                                                                              #
+    #                                                                                                                  #
     ####################################################################################################################
 
     def test_cmd_proxylist(self):
@@ -83,12 +82,12 @@ class Test_commands(ProxyfilterTestCase):
         self.mike.clearMessageHistory()
         self.mike.says("!proxylist")
         # THEN
-        self.assertListEqual(['Proxy services: locationplugin, winmxunlimited'], self.mike.message_history)
+        self.assertListEqual(['Proxy services: geolocationplugin, winmxunlimited'], self.mike.message_history)
 
     ####################################################################################################################
-    ##                                                                                                                ##
-    ##  TEST CMD PROXYSERVICE                                                                                         ##
-    ##                                                                                                                ##
+    #                                                                                                                  #
+    #  TEST CMD PROXYSERVICE                                                                                           #
+    #                                                                                                                  #
     ####################################################################################################################
 
     def test_cmd_proxyservice_missing_data(self):
@@ -206,9 +205,9 @@ class Test_commands(ProxyfilterTestCase):
         self.assertDictEqual({}, self.p.services)
 
     ####################################################################################################################
-    ##                                                                                                                ##
-    ##  TEST CMD PROXYSTATS                                                                                           ##
-    ##                                                                                                                ##
+    #                                                                                                                  #
+    #  TEST CMD PROXYSTATS                                                                                             #
+    #                                                                                                                  #
     ####################################################################################################################
 
     def test_cmd_proxystats_empty(self):

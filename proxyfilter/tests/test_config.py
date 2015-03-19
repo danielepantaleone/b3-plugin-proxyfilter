@@ -18,7 +18,7 @@
 
 from b3.config import CfgConfigParser
 from textwrap import dedent
-from tests import ProxyfilterTestCase
+from . import ProxyfilterTestCase
 from proxyfilter import ProxyfilterPlugin
 from proxyfilter import WinmxunlimitedProxyScanner
 
@@ -88,7 +88,7 @@ class Test_config(ProxyfilterTestCase):
         """))
         # THEN
         self.assertDictEqual({}, self.p.services)
-        self.assertListEqual(['locationplugin', 'winmxunlimited'], self.p.settings['services'].keys())
+        self.assertListEqual(['geolocationplugin', 'winmxunlimited'], self.p.settings['services'].keys())
 
     def test_config_service_enabled(self):
         # WHEN

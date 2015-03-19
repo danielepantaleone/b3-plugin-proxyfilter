@@ -79,7 +79,7 @@ class ProxyfilterTestCase(unittest2.TestCase):
 
         # make sure the admin plugin obtained by other plugins is our admin plugin
         when(self.console).getPlugin('admin').thenReturn(self.adminPlugin)
-        when(self.console.config).get_external_plugins_dir().thenReturn(os.path.join(os.getcwd(), '..', 'extplugins'))
+        when(self.console.config).get_external_plugins_dir().thenReturn(os.path.join(os.getcwd(), '..', '..'))
 
         # patch the Proxyfilter class not to execute
         # proxy scans in a multithreaded environment
