@@ -151,7 +151,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         Initialize plugin settings.
         """
         # create database tables (if needed)
-        if not 'proxies' in self.console.storage.getTables():
+        if 'proxies' not in self.console.storage.getTables():
             external_dir = self.console.config.get_external_plugins_dir()
             sql_path = os.path.join(external_dir, 'proxyfilter', 'sql', self.console.storage.dsnDict['protocol'], 'proxyfilter.sql')
             self.console.storage.queryFromFile(sql_path)
@@ -275,7 +275,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
         service = m.group('service')
         service = service.lower()
 
-        if not service in self.settings['services']:
+        if service not in self.settings['services']:
             client.message('^7invalid service specified, try ^3!^7proxylist')
             return
 
