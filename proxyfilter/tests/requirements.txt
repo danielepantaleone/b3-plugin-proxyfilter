@@ -1,3 +1,4 @@
+python-dateutil
 unittest2
 mock>=0.8
 mockito
