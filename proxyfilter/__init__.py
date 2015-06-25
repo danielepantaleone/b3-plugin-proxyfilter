@@ -1,4 +1,3 @@
-#
 # ProxyFilter Plugin for BigBrotherBot(B3) (www.bigbrotherbot.net)
 # Copyright (C) 2014 Daniele Pantaleone <fenix@bigbrotherbot.net>
 # 
@@ -15,22 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
-#
-# CHANGELOG
-#
-# 2014/05/12 - 1.0   - Fenix - initial release
-# 2014/05/13 - 1.0.1 - Fenix - minor fixes to debug messages
-# 2014/05/14 - 1.0.2 - Fenix - added a new proxy detection service based on the Location Plugin
-# 2015/02/01 - 1.1   - Fenix - use the new plugin structure
-#                            - make plugin up to date with LocationPlugin changes
-#                            - remove compatibility with B3 1.9.x
-#                            - do not let the plugin crash B3 upon object construction
-#                            - postgresql support
-# 2015/02/23 - 1.2   - Fenix - changed plugin to use EVT_CLIENT_AUTH to correctly match client level
-# 2015/03/19 - 1.3   - Fenix - changed plugin to use the new GeolocationPlugin
 
 __author__ = 'Fenix'
-__version__ = '1.3'
+__version__ = '1.4'
 
 import b3
 import b3.plugin
@@ -50,6 +36,8 @@ from time import time
 class ProxyfilterPlugin(b3.plugin.Plugin):
 
     adminPlugin = None
+    requiresPlugins = ['geolocation']
+    requiresVersion = '1.10.1'
 
     settings = {
         'maxlevel': 40,
