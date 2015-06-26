@@ -222,7 +222,27 @@ class Test_commands(ProxyfilterTestCase):
 
     def test_cmd_proxystats_with_result(self):
         # GIVEN
-        self.init()
+        self.init(dedent(r"""
+            [settings]
+            maxlevel: reg
+            reason: ^1proxy detected
+            timeout: 4
+
+            [services]
+            winmxunlimited: yes
+            geolocationplugin: no
+
+            [messages]
+            client_rejected: ^7$client has been ^1rejected^7: proxy detected
+            proxy_list: ^7Proxy services: $services
+            stats_count_proxies: ^7[^4$count^7] ^7proxy detected till now
+            stats_detail_pattern: ^7[^4$count^7] ^7: ^3$service
+
+            [commands]
+            proxylist: senioradmin
+            proxyservice: senioradmin
+            proxystats: senioradmin
+        """))
         self.bill.kick = Mock()
         # WHEN
         when(self.p.services['winmxunlimited']).scan(self.bill).thenReturn(True)
