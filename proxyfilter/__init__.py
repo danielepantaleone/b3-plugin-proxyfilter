@@ -162,11 +162,11 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
             if self.settings['services'][keyword]['enabled']:
                 self.init_proxy_service(keyword)
 
-        if 'geolocation' in self.services:
-            self.registerEvent('EVT_CLIENT_GEOLOCATION_SUCCESS', self.doProxyScan)
-            self.registerEvent('EVT_CLIENT_GEOLOCATION_FAILURE', self.doProxyScan)
-        else:
-            self.registerEvent(self.console.getEventID('EVT_CLIENT_AUTH'), self.doProxyScan)
+        self.registerEvent('EVT_CLIENT_GEOLOCATION_SUCCESS', self.doProxyScan)
+        self.registerEvent('EVT_CLIENT_GEOLOCATION_FAILURE', self.doProxyScan)
+        self.registerEvent('EVT_CLIENT_AUTH', self.onAuth)
+        self.registerEvent('EVT_PLUGIN_DISABLED', self.onPluginDisabled)
+        self.registerEvent('EVT_PLUGIN_ENABLED', self.onPluginEnabled)
 
         # notice plugin started
         self.debug('plugin started')
@@ -193,7 +193,7 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
 
     def doProxyScan(self, event):
         """
-        Handle EVT_CLIENT_AUTH.
+        Execute a proxy scan on the connecting client..
         """
         client = event.client
         if client.maxLevel >= self.settings['maxlevel']:
@@ -202,6 +202,28 @@ class ProxyfilterPlugin(b3.plugin.Plugin):
             proxycheck = Thread(target=self._threaded_proxy_scan, args=(client,))
             proxycheck.setDaemon(True)
             proxycheck.start()
+
+    def onAuth(self, event):
+        """
+        Handle EVT_CLIENT_AUTH.
+        """
+        # execute only if geolocation plugin is disabled, otherwise wait for it to produce its events
+        if not self.settings['services']['geolocationplugin']['enabled']:
+            self.doProxyScan(event)
+
+    def onPluginDisabled(self, event):
+        """
+        Handle EVT_PLUGIN_DISABLED.
+        """
+        if event.data == 'geolocation':
+            self.settings['services']['geolocationplugin']['enabled'] = False
+
+    def onPluginEnabled(self, event):
+        """
+        Handle EVT_PLUGIN_ENABLED.
+        """
+        if event.data == 'geolocation':
+            self.settings['services']['geolocationplugin']['enabled'] = True
 
     ####################################################################################################################
     #                                                                                                                  #

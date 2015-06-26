@@ -142,7 +142,7 @@ class GeolocationPluginProxyScanner(ProxyScanner):
         """
         Return True if the given client is connected through a Proxy server, False otherwise.
         """
-        if not hasattr(client, 'location'):
+        if not hasattr(client, 'location') or not client.location.country:
             self.debug('could not perform proxy scan on %s <@%s> : geolocation data not available' % (client.name, client.id))
             return False
 
