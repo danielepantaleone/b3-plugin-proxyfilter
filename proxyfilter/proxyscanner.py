@@ -19,7 +19,6 @@
 
 from b3.exceptions import MissingRequirement
 from urllib2 import urlopen
-from urllib2 import URLError
 
 
 class ProxyScanner(object):
@@ -112,7 +111,7 @@ class WinmxunlimitedProxyScanner(ProxyScanner):
             self.warning('invalid response returned from the service api: %s' % data)
             return False
 
-        except URLError, e:
+        except Exception, e:
             self.error('could not connect to service api: %s' % e)
             return False
 
